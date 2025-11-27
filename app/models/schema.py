@@ -5,6 +5,12 @@ Follows Pydantic v2 best practices with proper type hints and aliases
 from typing import Dict, Any, List, Optional, Literal
 from pydantic import BaseModel, Field, ConfigDict, field_validator, HttpUrl
 from datetime import datetime
+from app.constants import (
+    SUPPORTED_LANGUAGES,
+    SUPPORTED_SUBJECTS,
+    DOCUMENT_TYPES,
+    ACADEMIC_LEVELS
+)
 
 
 # Request Models
@@ -22,14 +28,32 @@ class ParseRequest(BaseModel):
         max_length=500,
         description="Unique file identifier"
     )
-    file_url: HttpUrl = Field(
+    file_url: str = Field(
         ..., 
-        description="Pre-signed URL to download file"
+        min_length=1,
+        max_length=2048,
+        description="URL to download file (HTTP/HTTPS) or local file path (for testing with file://)"
     )
     mime_type: str = Field(
         ..., 
         description="MIME type of the file"
     )
+    
+    # Required metadata from client
+    language: SUPPORTED_LANGUAGES = Field(
+        ...,
+        description="Document language: 'en', 'ar', 'de', 'fr', 'es', 'it'"
+    )
+    subject: SUPPORTED_SUBJECTS = Field(
+        ...,
+        description="Document subject (e.g., 'science', 'math', 'english', 'history', etc.)"
+    )
+    document_type: DOCUMENT_TYPES = Field(
+        ...,
+        description="Document type: 'explanation', 'exercises', or 'mixed'"
+    )
+    
+    # Optional fields
     options: Dict[str, Any] = Field(
         default_factory=dict, 
         description="Parsing options (extract_tables, ocr_enabled, etc.)"
@@ -228,15 +252,15 @@ class DocumentMetadata(BaseModel):
         description="Estimated reading time in seconds",
         ge=0
     )
-    document_type: Optional[Literal["academic", "business", "technical", "general", "educational"]] = Field(
-        default="general",
+    document_type: Optional[DOCUMENT_TYPES] = Field(
+        default=None,
         alias="documentType",
-        description="Classified document type"
+        description="Document type: 'explanation', 'exercises', or 'mixed'"
     )
-    academic_level: Optional[Literal["elementary", "middle", "high", "undergraduate", "graduate"]] = Field(
+    academic_level: Optional[ACADEMIC_LEVELS] = Field(
         default=None,
         alias="academicLevel",
-        description="Academic level if applicable"
+        description="Academic level: 'primary', 'secondary', 'high', or 'college'"
     )
 
 
