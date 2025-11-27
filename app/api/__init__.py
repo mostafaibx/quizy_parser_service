@@ -109,21 +109,24 @@ def create_app() -> FastAPI:
 
 def _register_routes(app: FastAPI) -> None:
     """Register API routes"""
-    from app.api.routes import health, parser, qstash_parser
+    # Import routers
+    from app.api.routes.health import router as health_router
+    from app.api.routes.parser import router as parser_router
+    from app.api.routes.qstash_parser import router as qstash_router
 
-    # Health check routes
-    app.include_router(health.router, tags=["health"])
+    # Health check routes (no prefix for /health endpoint)
+    app.include_router(health_router, tags=["health"])
 
     # Parser routes (direct/sync)
     app.include_router(
-        parser.router,
+        parser_router,
         prefix="/api/v1",
         tags=["parser"]
     )
 
     # QStash parser routes (async via queue)
     app.include_router(
-        qstash_parser.router,
+        qstash_router,
         prefix="/api/v1",
         tags=["qstash"]
     )
